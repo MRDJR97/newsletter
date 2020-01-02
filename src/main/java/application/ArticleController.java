@@ -15,7 +15,6 @@ public class ArticleController {
   //@RequestMapping(method=GET)
   @RequestMapping("/article")
   public Article greeting(@RequestParam(value="name", defaultValue="World") String name) {
-    return new Article(counter.incrementAndGet(),
-              String.format(template, name));
+    return new Article(counter.incrementAndGet(), String.format(template, name));
   }
 }
