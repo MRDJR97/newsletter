@@ -16,109 +16,48 @@ public class BingClient {
 	String subscriptionKey;
 	
 	public BingClient(String subscriptionKey) {
-		
 		this.subscriptionKey = subscriptionKey;
 	}
 
-	public void executeSearch(){
+	public void executeSearch(String query){
 		
 		BingNewsSearchAPI client = BingNewsSearchManager.authenticate(subscriptionKey);
 	    
 		try {
 
-            //=============================================================
-            // This will search news for (Quantum  Computing) with market and count parameters then verify number of
-            // results and print out total estimated matches, name, url, description, published time and name of provider
-            // of the first item in the list of news result list.
-
-            System.out.println("Search news for query \"Quantum  Computing\" with market and count");
-            NewsModel newsResults = client.bingNews().search()
-                .withQuery("Quantum  Computing")
+			NewsModel newsResults = client.bingNews().search()
+                .withQuery(query)
                 .withMarket("en-us")
-                .withCount(100)
+                .withFreshness(Freshness.DAY)
+                .withSafeSearch(SafeSearch.MODERATE)
+                .withCount(10)
                 .execute();
 
-            PrintNewsResult(newsResults);
+            PrintNewsResult(newsResults, query, 3);
 
-
-            //=============================================================
-            // This will search most recent news for (Artificial Intelligence) with freshness and sort-by parameters then
-            //  verify number of results and print out totalEstimatedMatches, name, url, description, published time and
-            //  name of provider of the first news result
-
-            System.out.println("Search most recent news for query \"Artificial Intelligence\" with freshness and sortBy");
-            newsResults = client.bingNews().search()
-                .withQuery("Artificial Intelligence")
-                .withMarket("en-us")
-                .withFreshness(Freshness.WEEK)
-                .withSortBy("Date")
-                .execute();
-
-            PrintNewsResult(newsResults);
-
-
-            //=============================================================
-            // This will search category news for movie and TV entertainment with safe search then verify number of results
-            //  and print out category, name, url, description, published time and name of provider of the first news result
-
-            System.out.println("Search category news for movie and TV entertainment with safe search");
-            newsResults = client.bingNews().category()
-                .withMarket("en-us")
-                .withCategory("Entertainment_MovieAndTV")
-                .withSafeSearch(SafeSearch.STRICT)
-                .execute();
-
-            PrintNewsResult(newsResults);
-
-
-            //=============================================================
-            // This will search news trending topics in Bing then verify number of results and print out name, text of query,
-            //  webSearchUrl, newsSearchUrl and image Url of the first news result
-
-            System.out.println("Search news trending topics in Bing");
-            TrendingTopics trendingTopics = client.bingNews().trending()
-                .withMarket("en-us")
-                .execute();
-
-            if (trendingTopics != null) {
-                if (trendingTopics.value().size() > 0) {
-                    NewsTopic firstTopic = trendingTopics.value().get(0);
-
-                    System.out.println(String.format("Trending topics count: %s", trendingTopics.value().size()));
-                    System.out.println(String.format("First topic name: %s", firstTopic.name()));
-                    System.out.println(String.format("First topic query: %s", firstTopic.query().text()));
-                    System.out.println(String.format("First topic image url: %s", firstTopic.image().url()));
-                    System.out.println(String.format("First topic webSearchUrl: %s", firstTopic.webSearchUrl()));
-                    System.out.println(String.format("First topic newsSearchUrl: %s", firstTopic.newsSearchUrl()));
-                } else {
-                    System.out.println("Couldn't find news trending topics!");
-                }
-            } else {
-                System.out.println("Didn't see any news trending topics..");
-            }
         } catch (Exception f) {
             System.out.println(f.getMessage());
             f.printStackTrace();
         }
 	}
 	
-	public static void PrintNewsResult(NewsModel newsResults) {
+	public static void PrintNewsResult(NewsModel newsResults, String query, int numArticles) {
         if (newsResults != null) {
-            if (newsResults.value().size() > 0) {
-                NewsArticle firstNewsResult = newsResults.value().get(0);
-
-                System.out.println(String.format("TotalEstimatedMatches value: %d", newsResults.totalEstimatedMatches()));
-                System.out.println(String.format("News result count: %d", newsResults.value().size()));
-                System.out.println(String.format("First news name: %s", firstNewsResult.name()));
-                System.out.println(String.format("First news url: %s", firstNewsResult.url()));
-                System.out.println(String.format("First news description: %s", firstNewsResult.description()));
-                System.out.println(String.format("First news published time: %s", firstNewsResult.datePublished()));
-                System.out.println(String.format("First news provider: %s", firstNewsResult.provider().get(0).name()));
+            if (newsResults.value().size() >= numArticles) {
+            	System.out.println("\n\n"+query);
+            	for(int i=0; i<numArticles; i++){
+            		
+            		NewsArticle result = newsResults.value().get(i);
+                    System.out.println(String.format("First news name: %s", result.name()));
+                    System.out.println(String.format("First news url: %s", result.url()));
+                    System.out.println(String.format("First news description: %s", result.description())+"\n");
+            	}
+                
             } else {
-                System.out.println("Couldn't find news results!");
+                System.out.println("Error: Couldn't find news results!");
             }
         } else {
-            System.out.println("Didn't see any news result data..");
+            System.out.println("Error: Didn't see any news result data..");
         }
     }
 }

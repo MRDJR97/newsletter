@@ -8,9 +8,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +28,9 @@ import com.microsoft.azure.cognitiveservices.search.newssearch.models.TrendingTo
 @Component
 public class Scheduler {
 
-	private int numArticles = 10;
+	
+	@Value("#{'${queries}'.split(',')}") 
+	private List<String> queriesList;
 	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	private static final String smmryURL = "http://api.smmry.com/SM_API_KEY=03BB18EB05";
@@ -37,7 +41,12 @@ public class Scheduler {
 		//Bing subscription key
 		String subscriptionKey = "541c79c3eb314aa895d2f288b8cf9730";//how to store this? remember code on github
 		BingClient client = new BingClient(subscriptionKey);
-		client.executeSearch();
+		
+		for(String query:queriesList){
+			System.out.println("RUNNING QUERY FOR: "+query);
+			client.executeSearch(query);
+		}
+		
 		
 		
 	    //---------------------------------------------------------------------------
