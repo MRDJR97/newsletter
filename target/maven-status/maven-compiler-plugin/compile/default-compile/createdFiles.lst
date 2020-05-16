@@ -1,5 +1,7 @@
-application\Article.class
-application\BingClient.class
 application\ArticleController.class
 application\Scheduler.class
+utilities\EmailService.class
+utilities\EmailServiceImpl.class
+objects\Article.class
+application\BingClient.class
 application\Application.class

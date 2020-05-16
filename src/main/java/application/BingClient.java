@@ -1,5 +1,7 @@
 package application;
 
+import java.util.List;
+
 import com.microsoft.azure.cognitiveservices.search.newssearch.BingNewsSearchAPI;
 import com.microsoft.azure.cognitiveservices.search.newssearch.BingNewsSearchManager;
 import com.microsoft.azure.cognitiveservices.search.newssearch.models.Freshness;
@@ -19,7 +21,7 @@ public class BingClient {
 		this.subscriptionKey = subscriptionKey;
 	}
 
-	public void executeSearch(String query){
+	public List<NewsArticle> executeSearch(String query){
 		
 		BingNewsSearchAPI client = BingNewsSearchManager.authenticate(subscriptionKey);
 	    
@@ -34,15 +36,20 @@ public class BingClient {
                 .execute();
 
             PrintNewsResult(newsResults, query, 3);
-
+            return newsResults.value();
         } catch (Exception f) {
             System.out.println(f.getMessage());
             f.printStackTrace();
+            //TODO: Check this is proper way
+            List<NewsArticle> emptyNewsResults = null;
+			return emptyNewsResults;
         }
 	}
 	
+	//TODO eventually remove this or replace with logging
 	public static void PrintNewsResult(NewsModel newsResults, String query, int numArticles) {
         if (newsResults != null) {
+        	//add these checks to function in scheduler which creates Article objects
             if (newsResults.value().size() >= numArticles) {
             	System.out.println("\n\n"+query);
             	for(int i=0; i<numArticles; i++){

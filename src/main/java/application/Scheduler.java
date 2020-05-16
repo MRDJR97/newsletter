@@ -7,8 +7,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,10 @@ import com.microsoft.azure.cognitiveservices.search.newssearch.models.NewsTopic;
 import com.microsoft.azure.cognitiveservices.search.newssearch.models.SafeSearch;
 import com.microsoft.azure.cognitiveservices.search.newssearch.models.TrendingTopics;
 
+import objects.Article;
+import utilities.EmailService;
+import utilities.EmailServiceImpl;
+
 @Component
 public class Scheduler {
 
@@ -35,18 +41,45 @@ public class Scheduler {
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	private static final String smmryURL = "http://api.smmry.com/SM_API_KEY=03BB18EB05";
 	
-	@Scheduled(fixedRate = 60000)
+	//every 120 seconds
+	@Scheduled(fixedRate = 120000)
 	public void formulateNewsContent() {
-		System.out.println("!!!Running Scheduler!!!");
+		System.out.println("-----------Running Scheduler----------");
 		//Bing subscription key
-		String subscriptionKey = "541c79c3eb314aa895d2f288b8cf9730";//how to store this? remember code on github
+		String subscriptionKey = "541c79c3eb314aa895d2f288b8cf9730";//how to store this? ensure it cant be seen in the code on github
+		String adminEmail = "danieljohnregan@gmail.com";
 		BingClient client = new BingClient(subscriptionKey);
 		
+		//todo: create email template here, then each iteration
+		//and populate template with articles to send to Daniel
+		//addcurrentdate to articleID (backwards for sorting)
+		int articleId = 100;
+		List <Article> allArticlesForEmail = new ArrayList<Article>();
 		for(String query:queriesList){
-			System.out.println("RUNNING QUERY FOR: "+query);
-			client.executeSearch(query);
+			
+			List<NewsArticle> allReturnedArticlesList = new ArrayList<NewsArticle>();
+			System.out.println("RUNNING QUERY FOR: " + query);
+			try {
+				
+				Thread.sleep(3000);
+				//test what happens if this fails
+				allReturnedArticlesList = client.executeSearch(query);
+			} catch (Exception e) {
+				//handle error
+				e.printStackTrace();
+			}
+			for (NewsArticle article: allReturnedArticlesList) {
+				//do check for description length that not too long
+				Article a = new Article(articleId, article.name(), article.url(), article.description());
+				allArticlesForEmail.add(a);
+				articleId++;
+			}
+			//TODO: Add to email template with its position in arraylist
+			EmailServiceImpl emailService = new EmailServiceImpl();
+			emailService.sendSimpleMessage(adminEmail, allArticlesForEmail);
 		}
-		
+		//daniel responds to email with a list of numbers, which are included in the email
+		//or automatically create google form and email to daniel, if theres api
 		
 		
 	    //---------------------------------------------------------------------------
